@@ -1,0 +1,42 @@
+{
+  "pageId": "1",
+  "slug": "home",
+  "title": "Home Page",
+  "sections": [
+    {
+      "id": "s1",
+      "type": "hero",
+      "props": {
+        "title": "Welcome HOME",
+        "subtitle": "The easiest"
+      }
+    },
+    {
+      "id": "s2",
+      "type": "featureGrid",
+      "props": {
+        "features": [
+          "Fast",
+          "Reliable",
+          "Accessible"
+        ]
+      }
+    },
+    {
+      "id": "s3",
+      "type": "testimonial",
+      "props": {
+        "author": "Jane Doe",
+        "quote": "This studio is amazing!"
+      }
+    },
+    {
+      "id": "s4",
+      "type": "cta",
+      "props": {
+        "label": "Get Started",
+        "url": "/signup"
+      }
+    }
+  ]
+}

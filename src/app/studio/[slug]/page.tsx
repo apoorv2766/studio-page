@@ -4,7 +4,7 @@ import { use, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 import { setDraftPage, updateSectionProp } from '@/store/slices/draftPageSlice';
-import { setActiveSection } from '@/store/slices/uiSlice';
+import { setActiveSection, setRole } from '@/store/slices/uiSlice';
 import { fetchPageData } from '@/lib/contentfulClient';
 import { renderSection } from '@/lib/sectionRegistry';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,12 @@ export default function StudioPage({ params }: { params: Promise<{ slug: string 
   const publishState = useSelector((state: RootState) => state.publish);
   
   useEffect(() => {
+    // Sync Redux role with cookie on mount
+    const match = document.cookie.match(new RegExp('(^| )user-role=([^;]+)'));
+    if (match) dispatch(setRole(match[2] as any));
+  }, [dispatch]);
+  
+  useEffect(() => {
     fetchPageData(slug, true).then((data) => {
       if (data) dispatch(setDraftPage(data));
     });
@@ -31,7 +37,7 @@ export default function StudioPage({ params }: { params: Promise<{ slug: string 
 
   const activeSection = page.sections.find(s => s.id === activeSectionId);
 
-  const handlePropChange = (propKey: string, value: string) => {
+  const handlePropChange = (propKey: string, value: any) => {
     if (activeSectionId) {
       dispatch(updateSectionProp({ sectionId: activeSectionId, propKey, value }));
     }
@@ -44,7 +50,7 @@ export default function StudioPage({ params }: { params: Promise<{ slug: string 
       const res = await publishDraft(page, role);
       if (res.success && res.version) {
         dispatch(publishSuccess(res.version));
-        alert(`Published version ${res.version} (${res.bumpType} bump)`);
+        alert(`Published version ${res.version} (${res.bumpType} bump)\n\nChangelog: ${res.summary}`);
       } else {
         dispatch(publishFail());
         alert(`Publish failed: ${res.error}`);
@@ -55,14 +61,31 @@ export default function StudioPage({ params }: { params: Promise<{ slug: string 
     }
   };
 
+  const handleRoleChange = (newRole: 'viewer' | 'editor' | 'publisher') => {
+    document.cookie = `user-role=${newRole}; path=/`;
+    dispatch(setRole(newRole));
+    if (newRole === 'viewer') {
+      // Force reload to let middleware intercept and redirect
+      window.location.href = '/studio/' + slug;
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
       {/* Sidebar Editor */}
       <aside className="w-80 bg-white border-r flex flex-col overflow-y-auto shadow-sm z-10">
         <div className="p-4 border-b">
           <h2 className="text-lg font-bold truncate">Studio: {page.title}</h2>
-          <div className="flex justify-between items-center mt-1">
-            <p className="text-xs text-gray-500">Role: <span className="font-semibold text-blue-600">{role}</span></p>
+          <div className="flex justify-between items-center mt-2">
+            <select 
+              value={role} 
+              onChange={(e) => handleRoleChange(e.target.value as any)}
+              className="text-xs bg-gray-50 border border-gray-300 rounded p-1 text-gray-700"
+            >
+              <option value="viewer">Viewer</option>
+              <option value="editor">Editor</option>
+              <option value="publisher">Publisher</option>
+            </select>
             {role === 'publisher' && (
               <button 
                 onClick={handlePublish}

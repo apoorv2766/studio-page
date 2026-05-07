@@ -15,6 +15,7 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
+      - run: npx vitest run tests/unit.test.ts
       - run: npx playwright install --with-deps
       - run: npm run build
       - run: npx playwright test

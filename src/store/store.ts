@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import draftPageReducer from './slices/draftPageSlice';
-import uiReducer from './slices/uiSlice';
+import uiReducer from './slices/uiSlice.ts';
 import publishReducer from './slices/publishSlice';
 
 export const store = configureStore({

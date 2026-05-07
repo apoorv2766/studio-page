@@ -20,6 +20,7 @@ export async function publishDraft(draft: Page, role: string) {
 
   let latestVersion = '1.0.0';
   let bumpType: 'patch' | 'minor' | 'major' | 'none' = 'major';
+  let changelogSummary = 'Initial release';
   let isFirstPublish = true;
   
   try {
@@ -34,10 +35,13 @@ export async function publishDraft(draft: Page, role: string) {
       latestVersion = versions[0];
       const oldDataRaw = await fs.readFile(path.join(releasesDir, `${latestVersion}.json`), 'utf-8');
       const oldData = JSON.parse(oldDataRaw) as Page;
-      bumpType = determineSemVerBump(oldData, validatedPage);
+      
+      const diffResult = determineSemVerBump(oldData, validatedPage);
+      bumpType = diffResult.bump;
+      changelogSummary = diffResult.summary;
     }
   } catch (e) {
-    // No releases yet, bumpType remains 'major'
+    // No releases yet, defaults apply
   }
 
   if (bumpType === 'none') {
@@ -51,5 +55,5 @@ export async function publishDraft(draft: Page, role: string) {
     JSON.stringify(validatedPage, null, 2)
   );
 
-  return { success: true, version: newVersion, bumpType };
+  return { success: true, version: newVersion, bumpType, summary: changelogSummary };
 }
